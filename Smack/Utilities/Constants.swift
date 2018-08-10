@@ -10,6 +10,9 @@ import Foundation
 
 typealias CompleationHeandler = (_ Success: Bool) -> ()
 
+// Url constant
+let BASE_URL = "https://curious-slack.herokuapp.com/"
+let URL_REGISTER = "\(BASE_URL)/account/register"
 // Segues
 let TO_LOGIN = "toLogin"
 let TO_CREATE_ACCOUNT = "toCreateAccount"

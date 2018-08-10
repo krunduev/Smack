@@ -52,7 +52,15 @@ class AuthService {
             "email" : emailLowercase,
             "password" : password]
         
-//        Alamofire
+        Alamofire.request(URL_REGISTER, method: .post, parameters: body, encoding: JSONEncoding.default, headers: header).responseString { (response) in
+            
+            if response.result.error == nil {
+                complition(true)
+            } else {
+                complition(false)
+                debugPrint(response.result.error as Any)
+            }
+        }
         
     }
 
