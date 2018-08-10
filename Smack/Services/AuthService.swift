@@ -7,7 +7,7 @@
 //
 
 import Foundation
-
+import Alamofire
 
 class AuthService {
     static let instance = AuthService()
@@ -18,5 +18,42 @@ class AuthService {
         get {
             return defaults.bool(forKey: LOGGED_IN_KEY)
         }
+        set {
+            defaults.set(newValue, forKey: LOGGED_IN_KEY)
+        }
     }
+    
+    var authTocken : String {
+        get {
+            return defaults.value(forKey: TOKEN_KEY) as! String
+        }
+        set {
+            defaults.set(newValue, forKey: TOKEN_KEY)
+        }
+    }
+    
+    var userEmail : String {
+        get {
+            return defaults.value(forKey: USER_EMAIL) as! String
+        }
+        set {
+            defaults.set(newValue, forKey: USER_EMAIL)
+        }
+    }
+    
+    func registerUser(email: String, password: String, complition: @escaping CompleationHeandler) {
+        
+        let emailLowercase = email.lowercased()
+        
+        let header = [
+            "Content-Type":"application/json; charset=utf-8"]
+        
+        let body: Parameters = [
+            "email" : emailLowercase,
+            "password" : password]
+        
+//        Alamofire
+        
+    }
+
 }
