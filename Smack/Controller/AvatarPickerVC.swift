@@ -10,6 +10,8 @@ import UIKit
 
 class AvatarPickerVC: UIViewController {
 
+    var avatarType = AvatarType.dark
+    
     // Outlets
     @IBOutlet weak var collectionView: UICollectionView!
     @IBOutlet weak var segmentControl: UISegmentedControl!
@@ -25,12 +27,40 @@ class AvatarPickerVC: UIViewController {
         dismiss(animated: true, completion: nil)
     }
     @IBAction func segmentControlChanges(_ sender: Any) {
+        if segmentControl.selectedSegmentIndex == 0 {
+            avatarType = .dark
+        } else {
+            avatarType = .light
+        }
+        collectionView.reloadData()
     }
     
 }
 
 extension AvatarPickerVC: UICollectionViewDelegate {
+
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        
+        var numOfColums: CGFloat = 3
+        if UIScreen.main.bounds.width > 320 {
+            numOfColums = 4
+        }
+        
+        let spaceBetweenCells: CGFloat = 10.0
+        let padding: CGFloat = 40.0
+        let cellDimention = ((collectionView.bounds.width - padding) - (numOfColums-1)*spaceBetweenCells)/numOfColums
+        
+        return CGSize(width: cellDimention, height: cellDimention)
+    }
     
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        if avatarType == .dark {
+            UserDataService.instance.setAvatarName(avatarName: "dark\(indexPath.item)")
+        } else {
+            UserDataService.instance.setAvatarName(avatarName: "light\(indexPath.item)")
+        }
+        self.dismiss(animated: true, completion: nil)
+    }
 }
 
 extension AvatarPickerVC: UICollectionViewDataSource {
@@ -38,6 +68,7 @@ extension AvatarPickerVC: UICollectionViewDataSource {
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         
         if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "avatarCell", for: indexPath) as? AvatarCell {
+            cell.configureCell(index: indexPath.item, type: avatarType)
             return cell
         }
         return AvatarCell()
