@@ -8,8 +8,10 @@
 
 import Foundation
 import Alamofire
+import SwiftyJSON
 
 class AuthService {
+    
     static let instance = AuthService()
     
     let defaults = UserDefaults.standard
@@ -23,7 +25,7 @@ class AuthService {
         }
     }
     
-    var authTocken : String {
+    var authToken : String {
         get {
             return defaults.value(forKey: TOKEN_KEY) as! String
         }
@@ -41,18 +43,15 @@ class AuthService {
         }
     }
     
-    func registerUser(email: String, password: String, complition: @escaping CompleationHeandler) {
+    func registerUser(email: String, password: String, complition: @escaping CompletionHandler) {
         
         let emailLowercase = email.lowercased()
-        
-        let header = [
-            "Content-Type":"application/json; charset=utf-8"]
         
         let body: Parameters = [
             "email" : emailLowercase,
             "password" : password]
         
-        Alamofire.request(URL_REGISTER, method: .post, parameters: body, encoding: JSONEncoding.default, headers: header).responseString { (response) in
+        Alamofire.request(URL_REGISTER, method: .post, parameters: body, encoding: JSONEncoding.default, headers: HEADER).responseString { (response) in
             
             if response.result.error == nil {
                 complition(true)
@@ -61,7 +60,73 @@ class AuthService {
                 debugPrint(response.result.error as Any)
             }
         }
-        
     }
 
+    func loginUser(email: String, password: String, complition: @escaping CompletionHandler) {
+        
+        let emailLowercase = email.lowercased()
+        
+        let body: Parameters = [
+            "email" : emailLowercase,
+            "password" : password]
+        
+        Alamofire.request(URL_LOGIN, method: .post, parameters: body, encoding: JSONEncoding.default, headers: HEADER).responseString { (response) in
+            
+            if response.result.error == nil {
+                
+                guard let data = response.data else { return }
+                
+                if let json = try? JSON(data: data) {
+                    self.userEmail = json["user"].stringValue
+                    self.authToken = json["token"].stringValue
+                }
+                
+                self.isLogedIn = true
+                complition(true)
+            } else {
+                complition(false)
+                debugPrint(response.result.error as Any)
+            }
+        }
+    }
+    
+    func createUser(name: String, email: String, avatarName: String, avatarColor: String, completion: @escaping CompletionHandler) {
+        
+        let lowerCaseEmail = email.lowercased()
+        
+        let body: [String: Any] = [
+            "name": name,
+            "email": lowerCaseEmail,
+            "avatarName": avatarName,
+            "avatarColor": avatarColor
+        ]
+        
+        let header = [
+            "Authorization":"Bearer \(AuthService.instance.authToken)",
+            "Content-Type": "application/json; charset=utf-8"
+        ]
+        
+        Alamofire.request(URL_USER_ADD, method: .post, parameters: body, encoding: JSONEncoding.default, headers: header).responseJSON { (response) in
+            
+            if response.result.error == nil {
+                guard let data = response.data else { return }
+                guard let json = try? JSON(data: data) else { return }
+                
+                let id = json["_id"].stringValue
+                let color = json["avatarColor"].stringValue
+                let avatarName = json["avatarName"].stringValue
+                let email = json["email"].stringValue
+                let name = json["name"].stringValue
+                
+                UserDataService.instance.setUserData(id: id, color: color, avatarName: avatarName, email: email, name: name)
+                completion(true)
+                
+            } else {
+                completion(false)
+                debugPrint(response.result.error as Any)
+            }
+        }
+    }
+    
+    
 }
